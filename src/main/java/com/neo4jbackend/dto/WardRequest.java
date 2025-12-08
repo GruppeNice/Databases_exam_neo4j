@@ -1,4 +1,4 @@
-package com.neo4jbackend.model;
+package com.neo4jbackend.dto;
 
 import com.neo4jbackend.model.types.WardType;
 import jakarta.validation.constraints.Min;

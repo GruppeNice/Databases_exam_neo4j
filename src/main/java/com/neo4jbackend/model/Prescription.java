@@ -1,6 +1,6 @@
-package com.example.hospital_db_backend.model.neo4j;
+package com.neo4jbackend.model;
 
-import com.example.hospital_db_backend.model.entity_bases.PrescriptionBase;
+import com.neo4jbackend.model.entity_bases.PrescriptionBase;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -14,7 +14,7 @@ import java.util.UUID;
 @Node
 public class Prescription extends PrescriptionBase {
     @Id
-    private UUID patientId =  UUID.randomUUID();
+    private UUID prescriptionId =  UUID.randomUUID();
     @Relationship(type = "PRESCRIBED_TO", direction = Relationship.Direction.OUTGOING)
     private Patient patient;
     @Relationship(type = "PRESCRIBED_BY",  direction = Relationship.Direction.OUTGOING)

@@ -1,19 +1,18 @@
-package com.example.hospital_db_backend.service;
+package com.neo4jbackend.service;
 
-import com.example.hospital_db_backend.dto.NurseRequest;
-import com.example.hospital_db_backend.model.mysql.Nurse;
-import com.example.hospital_db_backend.model.mysql.Ward;
-import com.example.hospital_db_backend.exception.EntityNotFoundException;
-import com.example.hospital_db_backend.jpa.repository.NurseRepository;
-import com.example.hospital_db_backend.jpa.repository.WardRepository;
+import com.neo4jbackend.dto.NurseRequest;
+import com.neo4jbackend.model.Nurse;
+import com.neo4jbackend.model.Ward;
+import com.neo4jbackend.repository.NurseRepository;
+import com.neo4jbackend.repository.WardRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 
 @Service
 public class NurseService {
+
     private final NurseRepository nurseRepository;
     private final WardRepository wardRepository;
 
@@ -22,56 +21,16 @@ public class NurseService {
         this.wardRepository = wardRepository;
     }
 
-    public List<Nurse> getNurses() {
+    public List<Nurse> findAll() {
         return nurseRepository.findAll();
     }
 
-    public Nurse getNurseById(UUID id) {
-        UUID nurseId = Objects.requireNonNull(id, "Nurse ID cannot be null");
-        return nurseRepository.findById(nurseId)
-                .orElseThrow(() -> new EntityNotFoundException("Nurse not found"));
-    }
-
-    public Nurse createNurse(NurseRequest request) {
+    public void  save(@RequestBody NurseRequest request) {
+        Ward ward = wardRepository.findById(request.getWardId()).orElse(null);
         Nurse nurse = new Nurse();
-        nurse.setNurseId(UUID.randomUUID());
         nurse.setNurseName(request.getNurseName());
         nurse.setSpeciality(request.getSpeciality());
-
-        UUID wardId = request.getWardId();
-        if (wardId != null) {
-            Ward ward = wardRepository.findById(wardId)
-                    .orElseThrow(() -> new EntityNotFoundException("Ward not found"));
-            nurse.setWard(ward);
-        }
-
-        return nurseRepository.save(nurse);
-    }
-
-    public Nurse updateNurse(UUID id, NurseRequest request) {
-        UUID nurseId = Objects.requireNonNull(id, "Nurse ID cannot be null");
-        Nurse nurse = nurseRepository.findById(nurseId)
-                .orElseThrow(() -> new EntityNotFoundException("Nurse not found"));
-
-        nurse.setNurseName(request.getNurseName());
-        nurse.setSpeciality(request.getSpeciality());
-
-        UUID wardId = request.getWardId();
-        if (wardId != null) {
-            Ward ward = wardRepository.findById(wardId)
-                    .orElseThrow(() -> new EntityNotFoundException("Ward not found"));
-            nurse.setWard(ward);
-        }
-
-        return nurseRepository.save(nurse);
-    }
-
-    public void deleteNurse(UUID id) {
-        UUID nurseId = Objects.requireNonNull(id, "Nurse ID cannot be null");
-        if (!nurseRepository.existsById(nurseId)) {
-            throw new EntityNotFoundException("Nurse not found");
-        }
-        nurseRepository.deleteById(nurseId);
+        nurse.setWard(ward);
+        nurseRepository.save(nurse);
     }
 }
-

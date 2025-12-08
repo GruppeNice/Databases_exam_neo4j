@@ -1,6 +1,6 @@
-package com.example.hospital_db_backend.dto;
+package com.neo4jbackend.dto;
 
-import com.example.hospital_db_backend.model.types.NurseSpecialityType;
+import com.neo4jbackend.model.types.NurseSpecialityType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

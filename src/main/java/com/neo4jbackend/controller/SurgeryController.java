@@ -1,19 +1,16 @@
 package com.neo4jbackend.controller;
 
-import com.example.hospital_db_backend.dto.SurgeryRequest;
-import com.example.hospital_db_backend.model.mysql.Surgery;
-import com.example.hospital_db_backend.service.SurgeryService;
-import jakarta.validation.Valid;
+import com.neo4jbackend.dto.SurgeryRequest;
+import com.neo4jbackend.model.Surgery;
+import com.neo4jbackend.service.SurgeryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
-@RequestMapping("/surgeries")
+@RequestMapping("/neo4j/surgeries")
 public class SurgeryController {
 
     private final SurgeryService surgeryService;
@@ -23,41 +20,17 @@ public class SurgeryController {
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    public ResponseEntity<List<Surgery>> getSurgeries() {
-        List<Surgery> surgeries = surgeryService.getSurgeries();
-        if(surgeries.isEmpty()){
+    public ResponseEntity<List<Surgery>> getAllSurgeries() {
+        List<Surgery> surgeries = surgeryService.findAll();
+        if(surgeries.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         return new ResponseEntity<>(surgeries, HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    public ResponseEntity<Surgery> getSurgeryById(@PathVariable UUID id) {
-        Surgery surgery = surgeryService.getSurgeryById(id);
-        return new ResponseEntity<>(surgery, HttpStatus.OK);
-    }
-
     @PostMapping("/create")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Surgery> createSurgery(@Valid @RequestBody SurgeryRequest request) {
-        Surgery surgery = surgeryService.createSurgery(request);
-        return new ResponseEntity<>(surgery, HttpStatus.CREATED);
-    }
-
-    @PutMapping("/update/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Surgery> updateSurgery(@PathVariable UUID id, @Valid @RequestBody SurgeryRequest request) {
-        Surgery surgery = surgeryService.updateSurgery(id, request);
-        return new ResponseEntity<>(surgery, HttpStatus.OK);
-    }
-
-    @DeleteMapping("/delete/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteSurgery(@PathVariable UUID id) {
-        surgeryService.deleteSurgery(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<Void> createSurgery(@RequestBody SurgeryRequest request) {
+        surgeryService.save(request);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 }
-

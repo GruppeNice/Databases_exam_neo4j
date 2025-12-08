@@ -1,4 +1,4 @@
-package com.example.hospital_db_backend.dto;
+package com.neo4jbackend.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;

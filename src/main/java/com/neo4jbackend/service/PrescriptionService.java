@@ -1,116 +1,47 @@
-package com.example.hospital_db_backend.service;
+package com.neo4jbackend.service;
 
-import com.example.hospital_db_backend.dto.PrescriptionRequest;
-import com.example.hospital_db_backend.model.mysql.Doctor;
-import com.example.hospital_db_backend.model.mysql.Medication;
-import com.example.hospital_db_backend.model.mysql.Patient;
-import com.example.hospital_db_backend.model.mysql.Prescription;
-import com.example.hospital_db_backend.exception.EntityNotFoundException;
-import com.example.hospital_db_backend.jpa.repository.DoctorRepository;
-import com.example.hospital_db_backend.jpa.repository.MedicationRepository;
-import com.example.hospital_db_backend.jpa.repository.PatientRepository;
-import com.example.hospital_db_backend.jpa.repository.PrescriptionRepository;
+import com.neo4jbackend.dto.PrescriptionRequest;
+import com.neo4jbackend.model.Doctor;
+import com.neo4jbackend.model.Medication;
+import com.neo4jbackend.model.Patient;
+import com.neo4jbackend.model.Prescription;
+import com.neo4jbackend.repository.DoctorRepository;
+import com.neo4jbackend.repository.MedicationRepository;
+import com.neo4jbackend.repository.PatientRepository;
+import com.neo4jbackend.repository.PrescriptionRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 
 @Service
 public class PrescriptionService {
+
     private final PrescriptionRepository prescriptionRepository;
-    private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
+    private final PatientRepository patientRepository;
     private final MedicationRepository medicationRepository;
 
-    public PrescriptionService(PrescriptionRepository prescriptionRepository,
-                               PatientRepository patientRepository,
-                               DoctorRepository doctorRepository,
-                               MedicationRepository medicationRepository) {
+    public PrescriptionService(PrescriptionRepository prescriptionRepository, DoctorRepository doctorRepository, PatientRepository patientRepository, MedicationRepository medicationRepository) {
         this.prescriptionRepository = prescriptionRepository;
-        this.patientRepository = patientRepository;
         this.doctorRepository = doctorRepository;
+        this.patientRepository = patientRepository;
         this.medicationRepository = medicationRepository;
     }
 
-    public List<Prescription> getPrescriptions() {
+    public List<Prescription> findAll() {
         return prescriptionRepository.findAll();
     }
 
-    public Prescription getPrescriptionById(UUID id) {
-        UUID prescriptionId = Objects.requireNonNull(id, "Prescription ID cannot be null");
-        return prescriptionRepository.findById(prescriptionId)
-                .orElseThrow(() -> new EntityNotFoundException("Prescription not found"));
-    }
-
-    public Prescription createPrescription(PrescriptionRequest request) {
+    public void save(PrescriptionRequest request) {
+        Doctor doctor = doctorRepository.findById(request.getDoctorId()).orElse(null);
+        Medication medication = medicationRepository.findById(request.getMedicationId()).orElse(null);
+        Patient patient = patientRepository.findById(request.getPatientId()).orElse(null);
         Prescription prescription = new Prescription();
-        prescription.setPrescriptionId(UUID.randomUUID());
+        prescription.setDoctor(doctor);
+        prescription.setMedication(medication);
+        prescription.setPatient(patient);
         prescription.setStartDate(request.getStartDate());
         prescription.setEndDate(request.getEndDate());
-
-        UUID patientId = request.getPatientId();
-        if (patientId != null) {
-            Patient patient = patientRepository.findById(patientId)
-                    .orElseThrow(() -> new EntityNotFoundException("Patient not found"));
-            prescription.setPatient(patient);
-        }
-
-        UUID doctorId = request.getDoctorId();
-        if (doctorId != null) {
-            Doctor doctor = doctorRepository.findById(doctorId)
-                    .orElseThrow(() -> new EntityNotFoundException("Doctor not found"));
-            prescription.setDoctor(doctor);
-        }
-
-        UUID medicationId = request.getMedicationId();
-        if (medicationId != null) {
-            Medication medication = medicationRepository.findById(medicationId)
-                    .orElseThrow(() -> new EntityNotFoundException("Medication not found"));
-            prescription.setMedication(medication);
-        }
-
-        return prescriptionRepository.save(prescription);
-    }
-
-    public Prescription updatePrescription(UUID id, PrescriptionRequest request) {
-        UUID prescriptionId = Objects.requireNonNull(id, "Prescription ID cannot be null");
-        Prescription prescription = prescriptionRepository.findById(prescriptionId)
-                .orElseThrow(() -> new EntityNotFoundException("Prescription not found"));
-
-        prescription.setStartDate(request.getStartDate());
-        prescription.setEndDate(request.getEndDate());
-
-        UUID patientId = request.getPatientId();
-        if (patientId != null) {
-            Patient patient = patientRepository.findById(patientId)
-                    .orElseThrow(() -> new EntityNotFoundException("Patient not found"));
-            prescription.setPatient(patient);
-        }
-
-        UUID doctorId = request.getDoctorId();
-        if (doctorId != null) {
-            Doctor doctor = doctorRepository.findById(doctorId)
-                    .orElseThrow(() -> new EntityNotFoundException("Doctor not found"));
-            prescription.setDoctor(doctor);
-        }
-
-        UUID medicationId = request.getMedicationId();
-        if (medicationId != null) {
-            Medication medication = medicationRepository.findById(medicationId)
-                    .orElseThrow(() -> new EntityNotFoundException("Medication not found"));
-            prescription.setMedication(medication);
-        }
-
-        return prescriptionRepository.save(prescription);
-    }
-
-    public void deletePrescription(UUID id) {
-        UUID prescriptionId = Objects.requireNonNull(id, "Prescription ID cannot be null");
-        if (!prescriptionRepository.existsById(prescriptionId)) {
-            throw new EntityNotFoundException("Prescription not found");
-        }
-        prescriptionRepository.deleteById(prescriptionId);
+        prescriptionRepository.save(prescription);
     }
 }
-

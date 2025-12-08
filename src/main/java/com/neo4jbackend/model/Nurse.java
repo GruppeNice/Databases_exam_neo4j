@@ -1,6 +1,6 @@
-package com.example.hospital_db_backend.model.neo4j;
+package com.neo4jbackend.model;
 
-import com.example.hospital_db_backend.model.entity_bases.NurseBase;
+import com.neo4jbackend.model.entity_bases.NurseBase;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.neo4j.core.schema.Id;

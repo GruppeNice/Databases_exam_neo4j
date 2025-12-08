@@ -1,10 +1,10 @@
-package com.example.hospital_db_backend.jpa.repository;
+package com.neo4jbackend.repository;
 
-import com.example.hospital_db_backend.model.mysql.Surgery;
-import org.springframework.data.jpa.repository.JpaRepository;
+import com.neo4jbackend.model.Surgery;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 
 import java.util.UUID;
 
-public interface SurgeryRepository extends JpaRepository<Surgery, UUID> {
+public interface SurgeryRepository extends Neo4jRepository<Surgery, UUID> {
 }
 

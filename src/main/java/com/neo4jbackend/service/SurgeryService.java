@@ -1,97 +1,41 @@
-package com.example.hospital_db_backend.service;
+package com.neo4jbackend.service;
 
-import com.example.hospital_db_backend.dto.SurgeryRequest;
-import com.example.hospital_db_backend.model.mysql.Doctor;
-import com.example.hospital_db_backend.model.mysql.Patient;
-import com.example.hospital_db_backend.model.mysql.Surgery;
-import com.example.hospital_db_backend.exception.EntityNotFoundException;
-import com.example.hospital_db_backend.jpa.repository.DoctorRepository;
-import com.example.hospital_db_backend.jpa.repository.PatientRepository;
-import com.example.hospital_db_backend.jpa.repository.SurgeryRepository;
+import com.neo4jbackend.dto.SurgeryRequest;
+import com.neo4jbackend.model.Doctor;
+import com.neo4jbackend.model.Patient;
+import com.neo4jbackend.model.Surgery;
+import com.neo4jbackend.repository.DoctorRepository;
+import com.neo4jbackend.repository.PatientRepository;
+import com.neo4jbackend.repository.SurgeryRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 
 @Service
 public class SurgeryService {
-    private final SurgeryRepository surgeryRepository;
-    private final PatientRepository patientRepository;
-    private final DoctorRepository doctorRepository;
 
-    public SurgeryService(SurgeryRepository surgeryRepository,
-                          PatientRepository patientRepository,
-                          DoctorRepository doctorRepository) {
+    private final SurgeryRepository surgeryRepository;
+    private final DoctorRepository doctorRepository;
+    private final PatientRepository patientRepository;
+
+    public SurgeryService(SurgeryRepository surgeryRepository, DoctorRepository doctorRepository, PatientRepository patientRepository) {
         this.surgeryRepository = surgeryRepository;
-        this.patientRepository = patientRepository;
         this.doctorRepository = doctorRepository;
+        this.patientRepository = patientRepository;
     }
 
-    public List<Surgery> getSurgeries() {
+    public List<Surgery> findAll() {
         return surgeryRepository.findAll();
     }
 
-    public Surgery getSurgeryById(UUID id) {
-        UUID surgeryId = Objects.requireNonNull(id, "Surgery ID cannot be null");
-        return surgeryRepository.findById(surgeryId)
-                .orElseThrow(() -> new EntityNotFoundException("Surgery not found"));
-    }
-
-    public Surgery createSurgery(SurgeryRequest request) {
+    public void save(SurgeryRequest request){
+        Doctor doctor = doctorRepository.findById(request.getDoctorId()).orElse(null);
+        Patient patient =  patientRepository.findById(request.getPatientId()).orElse(null);
         Surgery surgery = new Surgery();
-        surgery.setSurgeryId(UUID.randomUUID());
+        surgery.setDoctor(doctor);
+        surgery.setPatient(patient);
         surgery.setSurgeryDate(request.getSurgeryDate());
         surgery.setDescription(request.getDescription());
-
-        UUID patientId = request.getPatientId();
-        if (patientId != null) {
-            Patient patient = patientRepository.findById(patientId)
-                    .orElseThrow(() -> new EntityNotFoundException("Patient not found"));
-            surgery.setPatient(patient);
-        }
-
-        UUID doctorId = request.getDoctorId();
-        if (doctorId != null) {
-            Doctor doctor = doctorRepository.findById(doctorId)
-                    .orElseThrow(() -> new EntityNotFoundException("Doctor not found"));
-            surgery.setDoctor(doctor);
-        }
-
-        return surgeryRepository.save(surgery);
-    }
-
-    public Surgery updateSurgery(UUID id, SurgeryRequest request) {
-        UUID surgeryId = Objects.requireNonNull(id, "Surgery ID cannot be null");
-        Surgery surgery = surgeryRepository.findById(surgeryId)
-                .orElseThrow(() -> new EntityNotFoundException("Surgery not found"));
-
-        surgery.setSurgeryDate(request.getSurgeryDate());
-        surgery.setDescription(request.getDescription());
-
-        UUID patientId = request.getPatientId();
-        if (patientId != null) {
-            Patient patient = patientRepository.findById(patientId)
-                    .orElseThrow(() -> new EntityNotFoundException("Patient not found"));
-            surgery.setPatient(patient);
-        }
-
-        UUID doctorId = request.getDoctorId();
-        if (doctorId != null) {
-            Doctor doctor = doctorRepository.findById(doctorId)
-                    .orElseThrow(() -> new EntityNotFoundException("Doctor not found"));
-            surgery.setDoctor(doctor);
-        }
-
-        return surgeryRepository.save(surgery);
-    }
-
-    public void deleteSurgery(UUID id) {
-        UUID surgeryId = Objects.requireNonNull(id, "Surgery ID cannot be null");
-        if (!surgeryRepository.existsById(surgeryId)) {
-            throw new EntityNotFoundException("Surgery not found");
-        }
-        surgeryRepository.deleteById(surgeryId);
+        surgeryRepository.save(surgery);
     }
 }
-

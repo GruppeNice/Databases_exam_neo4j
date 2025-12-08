@@ -1,6 +1,6 @@
-package com.example.hospital_db_backend.dto;
+package com.neo4jbackend.dto;
 
-import com.example.hospital_db_backend.model.types.AppointmentStatusType;
+import com.neo4jbackend.model.types.AppointmentStatusType;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;

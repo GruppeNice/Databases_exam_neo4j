@@ -1,117 +1,48 @@
-package com.example.hospital_db_backend.service;
+package com.neo4jbackend.service;
 
-import com.example.hospital_db_backend.dto.AppointmentRequest;
-import com.example.hospital_db_backend.model.mysql.Appointment;
-import com.example.hospital_db_backend.model.mysql.Doctor;
-import com.example.hospital_db_backend.model.mysql.Nurse;
-import com.example.hospital_db_backend.model.mysql.Patient;
-import com.example.hospital_db_backend.exception.EntityNotFoundException;
-import com.example.hospital_db_backend.jpa.repository.AppointmentRepository;
-import com.example.hospital_db_backend.jpa.repository.DoctorRepository;
-import com.example.hospital_db_backend.jpa.repository.NurseRepository;
-import com.example.hospital_db_backend.jpa.repository.PatientRepository;
+import com.neo4jbackend.dto.AppointmentRequest;
+import com.neo4jbackend.model.Appointment;
+import com.neo4jbackend.model.Doctor;
+import com.neo4jbackend.model.Nurse;
+import com.neo4jbackend.model.Patient;
+import com.neo4jbackend.repository.AppointmentRepository;
+import com.neo4jbackend.repository.DoctorRepository;
+import com.neo4jbackend.repository.NurseRepository;
+import com.neo4jbackend.repository.PatientRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 
 @Service
 public class AppointmentService {
-    private final AppointmentRepository appointmentRepository;
+
+    private final AppointmentRepository  appointmentRepository;
     private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
     private final NurseRepository nurseRepository;
 
-    public AppointmentService(AppointmentRepository appointmentRepository,
-                              PatientRepository patientRepository,
-                              DoctorRepository doctorRepository,
-                              NurseRepository nurseRepository) {
+    public AppointmentService(AppointmentRepository appointmentRepository, PatientRepository patientRepository, DoctorRepository doctorRepository, NurseRepository nurseRepository) {
         this.appointmentRepository = appointmentRepository;
         this.patientRepository = patientRepository;
         this.doctorRepository = doctorRepository;
         this.nurseRepository = nurseRepository;
     }
 
-    public List<Appointment> getAppointments() {
+    public List<Appointment> findAll(){
         return appointmentRepository.findAll();
     }
 
-    public Appointment getAppointmentById(UUID id) {
-        UUID appointmentId = Objects.requireNonNull(id, "Appointment ID cannot be null");
-        return appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new EntityNotFoundException("Appointment not found"));
-    }
-
-    public Appointment createAppointment(AppointmentRequest request) {
+    public void save(AppointmentRequest request){
+        Patient patient = patientRepository.findById(request.getPatientId()).orElse(null);
+        Doctor doctor = doctorRepository.findById(request.getDoctorId()).orElse(null);
+        Nurse nurse = nurseRepository.findById(request.getNurseId()).orElse(null);
         Appointment appointment = new Appointment();
-        appointment.setAppointmentId(UUID.randomUUID());
         appointment.setAppointmentDate(request.getAppointmentDate());
         appointment.setReason(request.getReason());
         appointment.setStatus(request.getStatus());
-
-        UUID patientId = request.getPatientId();
-        if (patientId != null) {
-            Patient patient = patientRepository.findById(patientId)
-                    .orElseThrow(() -> new EntityNotFoundException("Patient not found"));
-            appointment.setPatient(patient);
-        }
-
-        UUID doctorId = request.getDoctorId();
-        if (doctorId != null) {
-            Doctor doctor = doctorRepository.findById(doctorId)
-                    .orElseThrow(() -> new EntityNotFoundException("Doctor not found"));
-            appointment.setDoctor(doctor);
-        }
-
-        UUID nurseId = request.getNurseId();
-        if (nurseId != null) {
-            Nurse nurse = nurseRepository.findById(nurseId)
-                    .orElseThrow(() -> new EntityNotFoundException("Nurse not found"));
-            appointment.setNurse(nurse);
-        }
-
-        return appointmentRepository.save(appointment);
-    }
-
-    public Appointment updateAppointment(UUID id, AppointmentRequest request) {
-        UUID appointmentId = Objects.requireNonNull(id, "Appointment ID cannot be null");
-        Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new EntityNotFoundException("Appointment not found"));
-
-        appointment.setAppointmentDate(request.getAppointmentDate());
-        appointment.setReason(request.getReason());
-        appointment.setStatus(request.getStatus());
-
-        UUID patientId = request.getPatientId();
-        if (patientId != null) {
-            Patient patient = patientRepository.findById(patientId)
-                    .orElseThrow(() -> new EntityNotFoundException("Patient not found"));
-            appointment.setPatient(patient);
-        }
-
-        UUID doctorId = request.getDoctorId();
-        if (doctorId != null) {
-            Doctor doctor = doctorRepository.findById(doctorId)
-                    .orElseThrow(() -> new EntityNotFoundException("Doctor not found"));
-            appointment.setDoctor(doctor);
-        }
-
-        UUID nurseId = request.getNurseId();
-        if (nurseId != null) {
-            Nurse nurse = nurseRepository.findById(nurseId)
-                    .orElseThrow(() -> new EntityNotFoundException("Nurse not found"));
-            appointment.setNurse(nurse);
-        }
-
-        return appointmentRepository.save(appointment);
-    }
-
-    public void deleteAppointment(UUID id) {
-        UUID appointmentId = Objects.requireNonNull(id, "Appointment ID cannot be null");
-        if (!appointmentRepository.existsById(appointmentId)) {
-            throw new EntityNotFoundException("Appointment not found");
-        }
-        appointmentRepository.deleteById(appointmentId);
+        appointment.setPatient(patient);
+        appointment.setDoctor(doctor);
+        appointment.setNurse(nurse);
+        appointmentRepository.save(appointment);
     }
 }

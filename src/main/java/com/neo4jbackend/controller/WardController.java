@@ -1,8 +1,8 @@
 package com.neo4jbackend.controller;
 
-import com.neo4jbackend.model.WardRequest;
+import com.neo4jbackend.dto.WardRequest;
 import com.neo4jbackend.model.Ward;
-import com.neo4jbackend.service.WardNeo4jService;
+import com.neo4jbackend.service.WardService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,23 +11,26 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/neo4j/wards")
-public class WardNeo4jController {
+public class WardController {
 
-    WardNeo4jService wardNeo4jService;
+    private final WardService wardService;
 
-    public WardNeo4jController(WardNeo4jService wardNeo4jService) {
-        this.wardNeo4jService = wardNeo4jService;
+    public WardController(WardService wardService) {
+        this.wardService = wardService;
     }
 
     @GetMapping("/all")
     public ResponseEntity<List<Ward>> getAllWards() {
-        List<Ward> wards = wardNeo4jService.findAll();
+        List<Ward> wards = wardService.findAll();
+        if(wards.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
         return new ResponseEntity<>(wards, HttpStatus.OK);
     }
 
     @PostMapping("/create")
-    public ResponseEntity<WardRequest> createWard(@RequestBody WardRequest ward) {
-        wardNeo4jService.save(ward);
-        return new ResponseEntity<>(ward, HttpStatus.CREATED);
+    public ResponseEntity<Void> createWard(@RequestBody WardRequest request) {
+        wardService.save(request);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 }

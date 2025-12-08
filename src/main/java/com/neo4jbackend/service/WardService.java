@@ -1,19 +1,18 @@
 package com.neo4jbackend.service;
 
-import com.neo4jbackend.model.WardRequest;
+import com.neo4jbackend.dto.WardRequest;
 import com.neo4jbackend.model.Ward;
 import com.neo4jbackend.repository.WardRepository;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 
 import java.util.List;
 
 @Service
-public class WardNeo4jService {
+public class WardService {
 
-    WardRepository wardRepository;
+    private final WardRepository wardRepository;
 
-    public WardNeo4jService(WardRepository wardRepository) {
+    public WardService(WardRepository wardRepository) {
         this.wardRepository = wardRepository;
     }
 
@@ -21,11 +20,10 @@ public class WardNeo4jService {
         return wardRepository.findAll();
     }
 
-    public void save(WardRequest ward) {
+    public void save(WardRequest request) {
         Ward newWard = new Ward();
-        newWard.setWardId(null);
-        newWard.setType(ward.getType());
-        newWard.setMaxCapacity(ward.getMaxCapacity());
+        newWard.setType(request.getType());
+        newWard.setMaxCapacity(request.getMaxCapacity());
         wardRepository.save(newWard);
     }
 }

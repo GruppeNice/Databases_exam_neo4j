@@ -1,4 +1,4 @@
-package com.example.hospital_db_backend.model.types;
+package com.neo4jbackend.model.types;
 
 public enum DoctorSpecialityType {
     CARDIOLOGY,
