@@ -29,8 +29,8 @@ public class CypherSeeder implements CommandLineRunner {
         seedWards(8);
         seedDoctors(10);
         seedNurses(15);
-        seedPatients(30);
         seedDiagnoses(20);
+        seedPatients(30);
         seedPrescriptions(30);
         seedSurgeries(20);
         seedAppointments(30);
@@ -68,7 +68,7 @@ public class CypherSeeder implements CommandLineRunner {
 
             neo4jClient.query(
                     String.format(
-                            "CREATE (h:Hospital {hospitalId: '%s', name: '%s'})",
+                            "CREATE (h:Hospital {hospitalId: '%s', hospitalName: '%s'})",
                             hospitalId, hospitalName
                     )
             ).run();
@@ -84,7 +84,7 @@ public class CypherSeeder implements CommandLineRunner {
 
             neo4jClient.query(
                     String.format(
-                            "CREATE (w:Ward {wardId: '%s', name: '%s', type: '%s'})",
+                            "CREATE (w:Ward {wardId: '%s', wardName: '%s', type: '%s'})",
                             wardId, wardName, wardType
                     )
             ).run();
@@ -103,7 +103,7 @@ public class CypherSeeder implements CommandLineRunner {
 
             neo4jClient.query(
                     String.format(
-                            "CREATE (d:Doctor {doctorId: '%s', name: '%s', speciality: '%s'})",
+                            "CREATE (d:Doctor {doctorId: '%s', doctorName: '%s', speciality: '%s'})",
                             doctorId, doctorName, speciality
                     )
             ).run();
@@ -123,8 +123,24 @@ public class CypherSeeder implements CommandLineRunner {
 
             neo4jClient.query(
                     String.format(
-                            "CREATE (n:Nurse {nurseId: '%s', name: '%s', speciality: '%s'})",
+                            "CREATE (n:Nurse {nurseId: '%s', nurseName: '%s', speciality: '%s'})",
                             nurseId, nurseName, speciality
+                    )
+            ).run();
+        }
+    }
+
+    private void seedDiagnoses(int count) {
+        for (int i = 0; i < count; i++) {
+            String diagnosisId = UUID.randomUUID().toString();
+            String description = faker.medical().symptoms();
+
+            // Link to random patient and doctor
+            neo4jClient.query(
+                    String.format(
+                            "MATCH (d:Doctor) WHERE rand() < 0.2  WITH d LIMIT 1 " +
+                                    "CREATE (dx:Diagnosis {diagnosisId: '%s', description: '%s'})-[:GIVEN_BY]->(d)",
+                            diagnosisId, description
                     )
             ).run();
         }
@@ -140,33 +156,14 @@ public class CypherSeeder implements CommandLineRunner {
                 continue;
             }
 
-            // Assign a random doctor
             neo4jClient.query(
                     String.format(
-                            "MATCH (d:Doctor) " +
-                                    "WITH d " +
-                                    "WHERE rand() < 0.25 " + // Assign to a random doctor 25% of the time
-                                    "CREATE (p:Patient {patientId: '%s', name: '%s'})-[:TREATED_BY]->(d)",
+                            "MATCH (w:Ward) WHERE rand() < 0.25 WITH w LIMIT 1 " +
+                                    "MATCH (h:Hospital) WHERE rand() < 0.25 WITH w, h LIMIT 1 " +
+                                    "MATCH (d:Diagnosis) WHERE rand() < 0.25 WITH w, h, d " +
+                                    "CREATE (p:Patient {patientId: '%s', patientName: '%s'})-[:ASSIGNED_TO]->(w)," +
+                                    "(p)-[:HAS_HOSPITAL]->(h), (p)-[:HAS_DIAGNOSIS]->(d)",
                             patientId, patientName
-                    )
-            ).run();
-        }
-    }
-
-    private void seedDiagnoses(int count) {
-        for (int i = 0; i < count; i++) {
-            String diagnosisId = UUID.randomUUID().toString();
-            String description = faker.medical().symptoms();
-
-            // Link to random patient and doctor
-            neo4jClient.query(
-                    String.format(
-                            "MATCH (p:Patient) WITH p LIMIT 1 " +
-                                    "MATCH (d:Doctor) WITH p, d LIMIT 1 " +
-                                    "WHERE rand() < 0.2 " + // Randomly select a doctor + patient 20% of the time
-                                    "CREATE (dx:Diagnosis {diagnosisId: '%s', description: '%s'})-[:RELATED_TO]->(p), " +
-                                    "(dx)-[:CONFIRMED_BY]->(d)",
-                            diagnosisId, description
                     )
             ).run();
         }
@@ -180,12 +177,11 @@ public class CypherSeeder implements CommandLineRunner {
 
             neo4jClient.query(
                     String.format(
-                            "MATCH (p:Patient) WITH p LIMIT 1 " +
-                                    "MATCH (d:Doctor) WITH p, d LIMIT 1 " +
-                                    "MATCH (m:Medication) WITH p, d, m LIMIT 1 " +
-                                    "WHERE rand() < 0.2 " + // Randomly select 20% of combinations
+                            "MATCH (p:Patient) WHERE rand() < 0.2  WITH p LIMIT 1 " +
+                                    "MATCH (d:Doctor) WHERE rand() < 0.2  WITH p, d LIMIT 1 " +
+                                    "MATCH (m:Medication) WHERE rand() < 0.2  WITH p, d, m LIMIT 1 " +
                                     "CREATE (pr:Prescription {prescriptionId: '%s', startDate: '%s', endDate: '%s'})-[:PRESCRIBED_TO]->(p), " +
-                                    "(pr)-[:PRESCRIBED_BY]->(d), (pr)-[:CONTAINS]->(m)",
+                                    "(pr)-[:PRESCRIBED_BY]->(d), (pr)-[:PRESCRIPTION_OF]->(m)",
                             prescriptionId, startDate, endDate
                     )
             ).run();
@@ -200,11 +196,10 @@ public class CypherSeeder implements CommandLineRunner {
 
             neo4jClient.query(
                     String.format(
-                            "MATCH (p:Patient) WITH  p LIMIT 1 " +
-                                    "MATCH (d:Doctor) WITH p, d LIMIT 1 " +
-                                    "WHERE rand() < 0.2 " + // Randomly select 20% of patients and doctors
-                                    "CREATE (s:Surgery {surgeryId: '%s', surgeryDate: '%s'})-[:PERFORMED_ON]->(p), " +
-                                    "(s)-[:PERFORMED_BY]->(d)",
+                            "MATCH (p:Patient) WHERE rand() < 0.2  WITH  p LIMIT 1 " +
+                                    "MATCH (d:Doctor) WHERE rand() < 0.2  WITH p, d LIMIT 1 " +
+                                    "CREATE (s:Surgery {surgeryId: '%s', surgeryDate: '%s'})-[:HAS_SURGERY]->(p), " +
+                                    "(s)-[:OPERATED_BY]->(d)",
                             surgeryId, surgeryDate
                     )
             ).run();
@@ -222,8 +217,8 @@ public class CypherSeeder implements CommandLineRunner {
                             "MATCH (p:Patient) WHERE rand() < 0.5 WITH p LIMIT 1 " +
                                     "MATCH (d:Doctor) WHERE rand() < 0.5 WITH p, d LIMIT 1 " +
                                     "MATCH (n:Nurse) WHERE rand() < 0.5 WITH p, d, n LIMIT 1 " +
-                                    "CREATE (a:Appointment {appointmentId: '%s', status: '%s', appointmentDate: '%s'})-[:ASSIGNED_TO]->(p), " +
-                                    "(a)-[:BOOKED_WITH]->(d), (a)-[:ASSISTED_BY]->(n)",
+                                    "CREATE (a:Appointment {appointmentId: '%s', status: '%s', appointmentDate: '%s'})-[:APPOINTED_FOR]->(p), " +
+                                    "(a)-[:ASSIGNED_DOCTOR]->(d), (a)-[:ASSIGNED_NURSE]->(n)",
                             appointmentId, status, appointmentDate
                     )
             ).run();
