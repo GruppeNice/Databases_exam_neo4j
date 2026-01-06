@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/diagnosis")
+@RequestMapping("/neo4j/diagnosis")
 public class DiagnosisController {
 
     private final DiagnosisService diagnosisService;

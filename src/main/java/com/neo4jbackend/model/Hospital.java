@@ -16,6 +16,6 @@ import java.util.UUID;
 public class Hospital extends HospitalBase {
     @Id
     private UUID hospitalId  = UUID.randomUUID();
-    @Relationship(type = "HAS_WARDS", direction = Relationship.Direction.OUTGOING)
+    @Relationship(type = "HAS_WARD", direction = Relationship.Direction.OUTGOING)
     private Set<Ward> wards;
 }

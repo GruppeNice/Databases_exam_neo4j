@@ -25,8 +25,8 @@ public class CypherSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) {
         seedMedications(20);
-        seedHospitals(10);
         seedWards(8);
+        seedHospitals(10);
         seedDoctors(10);
         seedNurses(15);
         seedDiagnoses(20);
@@ -68,7 +68,10 @@ public class CypherSeeder implements CommandLineRunner {
 
             neo4jClient.query(
                     String.format(
-                            "CREATE (h:Hospital {hospitalId: '%s', hospitalName: '%s'})",
+                            "MATCH (w:Ward) WHERE rand() < 0.5 WITH COLLECT(w) AS wards " +
+                                    "CREATE (h:Hospital {hospitalId: '%s', hospitalName: '%s'}) WITH h, wards " +
+                                    "UNWIND wards AS w " +
+                                    "CREATE (h)-[:HAS_WARD]->(w)",
                             hospitalId, hospitalName
                     )
             ).run();
@@ -139,7 +142,7 @@ public class CypherSeeder implements CommandLineRunner {
             neo4jClient.query(
                     String.format(
                             "MATCH (d:Doctor) WHERE rand() < 0.2  WITH d LIMIT 1 " +
-                                    "CREATE (dx:Diagnosis {diagnosisId: '%s', description: '%s'})-[:GIVEN_BY]->(d)",
+                                    "CREATE (dx:Diagnosis {diagnosisId: '%s', description: '%s'})<-[:GIVEN_BY]-(d)",
                             diagnosisId, description
                     )
             ).run();

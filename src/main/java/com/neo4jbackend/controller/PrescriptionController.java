@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/prescriptions")
+@RequestMapping("/neo4j/prescriptions")
 public class PrescriptionController {
 
     private final PrescriptionService prescriptionService;

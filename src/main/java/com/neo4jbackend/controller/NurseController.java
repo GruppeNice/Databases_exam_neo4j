@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/nurses")
+@RequestMapping("/neo4j/nurses")
 public class NurseController {
 
     private final NurseService nurseService;
